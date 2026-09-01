@@ -7,8 +7,10 @@ const SIZE = 1024;
 
 // 빛나는 카드가 캔버스에서 차지할 비율.
 // 마스크는 가운데 66% 만 보여주므로, 실제로 보이는 영역 기준으로는 이 값의 1.5 배가 된다.
-const CARD_RATIO = 0.38;
-const BRIGHT = 150;
+const CARD_RATIO = 0.44;
+// 앞의 흰 카드만이 아니라 왼쪽의 어두운 뒤 카드까지 포함해야 중심이 맞는다.
+// 아이콘 바탕은 밝기 40 안팎, 뒤 카드는 56 이상이라 이 값으로 갈린다.
+const BRIGHT = 52;
 
 const img = sharp(SRC).ensureAlpha();
 const meta = await img.metadata();
@@ -125,12 +127,12 @@ const clampX = (v) => Math.max(2, Math.min(W - 3, Math.round(v)));
 const clampY = (v) => Math.max(2, Math.min(H - 3, Math.round(v)));
 
 const cTop = samplePatch(
-  clampX(left - cardW * 0.35),
-  clampY(top - cardH * 0.22)
+  clampX(left - cardW * 0.06),
+  clampY(top - cardH * 0.05)
 );
 const cBottom = samplePatch(
-  clampX(right + cardW * 0.28),
-  clampY(bottom + cardH * 0.1)
+  clampX(right + cardW * 0.06),
+  clampY(bottom + cardH * 0.05)
 );
 
 const backgroundSvg = Buffer.from(
