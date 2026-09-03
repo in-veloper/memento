@@ -26,14 +26,14 @@ import {
 } from './store';
 import { colors, font, radius } from './theme';
 import {
+  Bar,
   Chip,
   EmptyState,
+  GhostButton,
   IconButton,
   Label,
   MasteryMeter,
-  Panel,
   PrimaryButton,
-  ProgressRing,
   Sheet,
 } from './ui';
 
@@ -125,38 +125,46 @@ export default function DecksScreen() {
               return (
                 <Pressable
                   onPress={() => setOpenId(item.id)}
-                  style={({ pressed }) => [styles.deckRow, pressed && styles.pressed]}
+                  style={({ pressed }) => [styles.deckTile, pressed && styles.pressed]}
                 >
-                  <ProgressRing size={46} value={stats.mastery}>
-                    <Text style={styles.ringText}>
-                      {Math.round(stats.mastery * 100)}
+                  <View style={styles.deckTop}>
+                    <Text style={styles.deckName} numberOfLines={1}>
+                      {item.name}
                     </Text>
-                  </ProgressRing>
 
-                  <View style={styles.deckBody}>
-                    <Text style={styles.deckName}>{item.name}</Text>
-                    <Text style={styles.deckMeta}>
-                      카드 {stats.total}장 · 완전암기 {stats.mastered}장
+                    {stats.due > 0 && (
+                      <View style={styles.dueBadge}>
+                        <Text style={styles.dueBadgeText}>{stats.due}</Text>
+                      </View>
+                    )}
+
+                    <Pressable
+                      onPress={() => {
+                        setRenaming(item);
+                        setDeckName(item.name);
+                        setDeckSheet(true);
+                      }}
+                      hitSlop={10}
+                      style={styles.deckMenu}
+                    >
+                      <Ionicons
+                        name="ellipsis-horizontal"
+                        size={18}
+                        color={colors.textFaint}
+                      />
+                    </Pressable>
+                  </View>
+
+                  <View style={styles.deckBarRow}>
+                    <Bar value={stats.mastery} />
+                    <Text style={styles.deckPercent}>
+                      {Math.round(stats.mastery * 100)}%
                     </Text>
                   </View>
 
-                  {stats.due > 0 && (
-                    <View style={styles.dueBadge}>
-                      <Text style={styles.dueBadgeText}>{stats.due}</Text>
-                    </View>
-                  )}
-
-                  <Pressable
-                    onPress={() => {
-                      setRenaming(item);
-                      setDeckName(item.name);
-                      setDeckSheet(true);
-                    }}
-                    hitSlop={10}
-                    style={styles.deckMenu}
-                  >
-                    <Ionicons name="ellipsis-horizontal" size={18} color={colors.textFaint} />
-                  </Pressable>
+                  <Text style={styles.deckMeta}>
+                    카드 {stats.total}장 · 완전암기 {stats.mastered}장
+                  </Text>
                 </Pressable>
               );
             }}
@@ -275,13 +283,14 @@ export default function DecksScreen() {
           onPress={() => openCardSheet(null)}
           style={styles.grow}
         />
-        <IconButton
+        <GhostButton
           icon="documents-outline"
+          text="여러 장"
           onPress={() => {
             setBulkText('');
             setBulkSheet(true);
           }}
-          size={52}
+          style={styles.bulkButton}
         />
       </View>
 
@@ -306,7 +315,7 @@ export default function DecksScreen() {
             style={[styles.input, styles.inputTall]}
             value={back}
             onChangeText={setBack}
-            placeholder="답 또는 설명 — 비워두면 한 면짜리 카드가 됩니다"
+            placeholder="비워두면 한 면짜리 카드가 됩니다"
             placeholderTextColor={colors.textFaint}
             multiline
           />
@@ -324,9 +333,6 @@ export default function DecksScreen() {
                   />
                 ))}
               </View>
-              <Text style={styles.levelHint}>
-                복습할 때 자동으로 올라가지만, 여기서 직접 조절할 수도 있습니다.
-              </Text>
             </>
           )}
 
@@ -354,12 +360,14 @@ export default function DecksScreen() {
 
       <Sheet visible={bulkSheet} title="여러 장 한 번에" onClose={() => setBulkSheet(false)}>
         <Text style={styles.bulkHint}>
-          한 줄에 한 장씩, 앞면과 뒷면을 탭이나 " - "로 나눠 붙여넣으세요.
+          한 줄에 한 장씩. 앞면과 뒷면은 탭이나 " - "로 나눕니다. 구분자가 없으면 앞면만
+          있는 카드가 됩니다.
         </Text>
-        <Panel style={styles.example}>
+
+        <View style={styles.example}>
           <Text style={styles.exampleText}>거부처분 - 신청을 명시적으로 거절하는 행위</Text>
           <Text style={styles.exampleText}>부작위 - 아무런 처분을 하지 않는 것</Text>
-        </Panel>
+        </View>
 
         <TextInput
           style={[styles.input, styles.bulkInput]}
@@ -379,7 +387,7 @@ export default function DecksScreen() {
             setBulkSheet(false);
             setBulkText('');
             if (made === 0) {
-              Alert.alert('추가된 카드가 없습니다', '앞면과 뒷면을 나누는 구분자를 확인해 주세요.');
+              Alert.alert('추가된 카드가 없습니다', '빈 줄만 있었는지 확인해 주세요.');
             }
           }}
         />
@@ -394,22 +402,22 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.85 },
   list: { paddingBottom: 4 },
 
-  deckRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    padding: 14,
+  deckTile: {
+    gap: 10,
+    padding: 16,
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
-  ringText: { fontFamily: font.bold, color: colors.text, fontSize: 12 },
-  deckBody: { flex: 1, gap: 3 },
-  deckName: { color: colors.text, fontFamily: font.bold, fontSize: 17 },
-  deckMeta: { fontFamily: font.regular, color: colors.textFaint, fontSize: 12 },
+  deckTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  deckName: {
+    flex: 1,
+    fontFamily: font.bold,
+    color: colors.text,
+    fontSize: 17,
+    letterSpacing: -0.4,
+  },
   dueBadge: {
-    minWidth: 26,
+    minWidth: 24,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.pill,
@@ -417,11 +425,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dueBadgeText: { fontFamily: font.bold, color: colors.onAccent, fontSize: 12 },
-  deckMenu: { padding: 4 },
+  deckMenu: { padding: 2 },
+
+  deckBarRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  deckPercent: {
+    fontFamily: font.bold,
+    color: colors.accent,
+    fontSize: 13,
+    minWidth: 38,
+    textAlign: 'right',
+  },
+  deckMeta: { fontFamily: font.regular, color: colors.textFaint, fontSize: 12 },
 
   detailHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   detailTitleWrap: { flex: 1 },
-  detailTitle: { color: colors.text, fontFamily: font.bold, fontSize: 21 },
+  detailTitle: {
+    fontFamily: font.bold,
+    color: colors.text,
+    fontSize: 20,
+    letterSpacing: -0.5,
+  },
   detailMeta: { fontFamily: font.regular, color: colors.textFaint, fontSize: 12, marginTop: 2 },
 
   cardRow: {
@@ -431,8 +454,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   cardBody: { flex: 1, gap: 5 },
   cardFront: { fontFamily: font.semibold, color: colors.text, fontSize: 14, lineHeight: 20 },
@@ -441,21 +462,23 @@ const styles = StyleSheet.create({
   cardMeta: { fontFamily: font.regular, color: colors.textFaint, fontSize: 11 },
 
   detailActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  bulkButton: { paddingHorizontal: 18 },
 
-  input: { fontFamily: font.regular, backgroundColor: colors.surfaceHigh,
+  input: {
+    backgroundColor: colors.surfaceHigh,
     borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingHorizontal: 15,
+    paddingVertical: 14,
     color: colors.text,
+    fontFamily: font.regular,
     fontSize: 15,
     marginTop: 8,
   },
-  inputTall: { minHeight: 76, textAlignVertical: 'top' },
-  sectionLabel: { marginTop: 18 },
-  sheetButton: { marginTop: 20 },
+  inputTall: { minHeight: 78, textAlignVertical: 'top' },
+  sectionLabel: { marginTop: 20 },
+  sheetButton: { marginTop: 22 },
 
   levelRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
-  levelHint: { fontFamily: font.regular, color: colors.textFaint, fontSize: 12, lineHeight: 18, marginTop: 10 },
 
   deleteLink: {
     flexDirection: 'row',
@@ -467,7 +490,13 @@ const styles = StyleSheet.create({
   deleteLinkText: { fontFamily: font.semibold, color: colors.danger, fontSize: 14 },
 
   bulkHint: { fontFamily: font.regular, color: colors.textDim, fontSize: 13, lineHeight: 20 },
-  example: { marginTop: 12, gap: 5, paddingVertical: 12 },
+  example: {
+    marginTop: 12,
+    gap: 5,
+    padding: 14,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceHigh,
+  },
   exampleText: { fontFamily: font.regular, color: colors.textFaint, fontSize: 12 },
   bulkInput: { minHeight: 150, marginTop: 12 },
 });

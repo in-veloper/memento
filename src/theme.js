@@ -1,31 +1,32 @@
-// 아이콘이 크림색 종이라, 앱도 종이 위에 쓰는 느낌으로 간다.
+// 아이콘의 짙은 남보라 바탕과 금빛 광채를 그대로 앱으로 가져온다.
 export const colors = {
-  bg: '#E7E2D6',
-  surface: '#FBF9F4',
-  surfaceHigh: '#E6E1D5',
-  border: 'rgba(22, 48, 43, 0.12)',
-  borderStrong: 'rgba(22, 48, 43, 0.24)',
+  bg: '#0D0F14',
+  surface: '#161A22',
+  surfaceHigh: '#1E232D',
+  surfaceSoft: 'rgba(255, 255, 255, 0.04)',
 
-  text: '#16302B',
-  textDim: '#5A6E68',
-  textFaint: '#8B9B95',
+  line: 'rgba(255, 255, 255, 0.07)',
+  lineStrong: 'rgba(255, 255, 255, 0.15)',
 
-  accent: '#1F4A42',
-  accentSoft: '#2F7A6B',
-  onAccent: '#F7F4ED',
+  text: '#F2F4F7',
+  textDim: '#98A2B1',
+  textFaint: '#6A737F',
 
-  paper: '#FFFEFA',
-  paperEdge: '#DED8CA',
-  paperInk: '#16302B',
-  paperDim: '#8B9B95',
+  accent: '#F0B849',
+  accentSoft: '#F8D693',
+  accentDim: 'rgba(240, 184, 73, 0.14)',
+  accentLine: 'rgba(240, 184, 73, 0.34)',
+  onAccent: '#1B1405',
 
-  again: '#C2544B',
-  hard: '#B07D2A',
-  good: '#1F6E5B',
-  danger: '#C2544B',
+  // 채점 3단계. 앰버와 부딪히지 않게 서로 다른 계열로 잡았다.
+  again: '#FF8A7A',
+  hard: '#8FA8FF',
+  good: '#5FD3A6',
+
+  danger: '#FF8A7A',
 };
 
-export const gradient = ['#2F7A6B', '#1F4A42'];
+export const gradient = ['#F8D693', '#E9A63B'];
 
 // Pretendard. 굵기별로 별도 파일이라 fontWeight 대신 패밀리로 지정한다.
 export const font = {
@@ -35,16 +36,16 @@ export const font = {
 };
 
 export const radius = {
-  sm: 10,
-  md: 14,
-  lg: 18,
-  xl: 24,
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 28,
   pill: 999,
 };
 
 export const label = {
   fontFamily: font.bold,
   fontSize: 11,
-  letterSpacing: 1.4,
+  letterSpacing: 1.6,
   color: colors.textFaint,
 };

@@ -11,18 +11,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import {
-  dueCards,
-  gradeCard,
-  nextDueLabel,
-  schedule,
-  useStore,
-} from './store';
+import { dueCards, gradeCard, nextDueLabel, schedule, useStore } from './store';
 import { colors, font, radius } from './theme';
 import { Chip, EmptyState, MasteryMeter, PrimaryButton } from './ui';
 
 // 글이 길수록 글자를 줄여 한 화면에 최대한 담는다.
-// 짧은 단어는 크게 보여야 카드답고, 긴 지문은 작아야 눈에 들어온다.
 function typeScale(text, { answer = false } = {}) {
   const length = (text || '').length;
   const steps = answer
@@ -33,8 +26,8 @@ function typeScale(text, { answer = false } = {}) {
         [420, 15, 24],
       ]
     : [
-        [24, 32, 46],
-        [60, 27, 40],
+        [24, 33, 46],
+        [60, 28, 41],
         [140, 22, 34],
         [320, 18, 29],
       ];
@@ -53,9 +46,9 @@ function typeScale(text, { answer = false } = {}) {
 }
 
 const GRADES = [
-  { key: 'again', label: '다시', icon: 'refresh', color: colors.again },
-  { key: 'hard', label: '애매', icon: 'remove', color: colors.hard },
-  { key: 'good', label: '완벽', icon: 'checkmark', color: colors.good },
+  { key: 'again', label: '다시', color: colors.again },
+  { key: 'hard', label: '애매', color: colors.hard },
+  { key: 'good', label: '완벽', color: colors.good },
 ];
 
 export default function TodayScreen({ onGoDecks }) {
@@ -98,8 +91,6 @@ export default function TodayScreen({ onGoDecks }) {
 
   const card = state.cards.find((c) => c.id === session[index]) || null;
   const deck = card ? state.decks.find((d) => d.id === card.deckId) : null;
-  const remaining = Math.max(0, session.length - index);
-
   const hasBack = Boolean(card && card.back);
 
   const showAnswer = useCallback(() => {
@@ -109,7 +100,7 @@ export default function TodayScreen({ onGoDecks }) {
 
     Animated.timing(reveal, {
       toValue: 1,
-      duration: 320,
+      duration: 300,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
@@ -132,7 +123,7 @@ export default function TodayScreen({ onGoDecks }) {
       Animated.sequence([
         Animated.timing(enter, {
           toValue: 0,
-          duration: 120,
+          duration: 110,
           easing: Easing.in(Easing.quad),
           useNativeDriver: true,
         }),
@@ -148,7 +139,7 @@ export default function TodayScreen({ onGoDecks }) {
         setRevealed(false);
         reveal.setValue(0);
         setIndex((prev) => prev + 1);
-      }, 120);
+      }, 110);
     },
     [card, enter, reveal]
   );
@@ -207,6 +198,8 @@ export default function TodayScreen({ onGoDecks }) {
     );
   }
 
+  const progress = session.length ? done / session.length : 0;
+
   return (
     <View style={styles.root}>
       <View style={styles.topRow}>
@@ -226,11 +219,18 @@ export default function TodayScreen({ onGoDecks }) {
             />
           ))}
         </ScrollView>
-        <Text style={styles.counter}>{remaining}장 남음</Text>
       </View>
 
-      {/* 아이콘처럼 카드가 겹쳐 쌓인 모습. 뒤의 두 장만 절대 위치이고,
-          맨 앞 카드는 flex 로 남은 공간을 전부 차지한다. */}
+      <View style={styles.progressRow}>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+        </View>
+        <Text style={styles.progressText}>
+          {done} / {session.length}
+        </Text>
+      </View>
+
+      {/* 아이콘처럼 카드가 겹쳐 쌓인 모습. 맨 앞 카드만 flex 로 공간을 채운다. */}
       <View style={styles.stack}>
         <View style={styles.ghostBack} />
         <View style={styles.ghostFront} />
@@ -252,7 +252,10 @@ export default function TodayScreen({ onGoDecks }) {
           ]}
         >
           <Pressable style={styles.cardPress} onPress={showAnswer}>
-            <Text style={styles.deckTag}>{(deck?.name || '미분류').toUpperCase()}</Text>
+            <View style={styles.cardHead}>
+              <Text style={styles.deckTag}>{deck?.name || '미분류'}</Text>
+              <MasteryMeter level={card.level} size="sm" />
+            </View>
 
             <ScrollView
               style={styles.cardScrollView}
@@ -286,16 +289,13 @@ export default function TodayScreen({ onGoDecks }) {
               )}
             </ScrollView>
 
-            <View style={styles.cardFoot}>
-              <MasteryMeter level={card.level} />
-              <Text style={styles.cardHint}>
-                {revealed || !hasBack
-                  ? card.reps > 0
-                    ? `${card.reps}번째 복습`
-                    : '첫 복습'
-                  : '탭하면 답이 나옵니다'}
-              </Text>
-            </View>
+            <Text style={styles.cardHint}>
+              {revealed || !hasBack
+                ? card.reps > 0
+                  ? `${card.reps}번째 복습`
+                  : '첫 복습'
+                : '탭하면 답이 나옵니다'}
+            </Text>
           </Pressable>
         </Animated.View>
       </View>
@@ -310,11 +310,10 @@ export default function TodayScreen({ onGoDecks }) {
                 onPress={() => grade(g.key)}
                 style={({ pressed }) => [
                   styles.gradeButton,
-                  { borderColor: g.color },
                   pressed && { backgroundColor: colors.surfaceHigh },
                 ]}
               >
-                <Ionicons name={g.icon} size={17} color={g.color} />
+                <View style={[styles.gradeDot, { backgroundColor: g.color }]} />
                 <Text style={[styles.gradeLabel, { color: g.color }]}>{g.label}</Text>
                 <Text style={styles.gradeHint}>{nextDueLabel({ due: preview.due })}</Text>
               </Pressable>
@@ -331,93 +330,98 @@ export default function TodayScreen({ onGoDecks }) {
 const styles = StyleSheet.create({
   root: { flex: 1, gap: 12 },
 
-  topRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  topRow: { flexDirection: 'row', alignItems: 'center' },
   chipRow: { gap: 8, paddingRight: 4 },
-  counter: { fontFamily: font.semibold, color: colors.textFaint, fontSize: 12 },
 
-  stack: { flex: 1, paddingBottom: 14 },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  progressTrack: {
+    flex: 1,
+    height: 3,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceHigh,
+    overflow: 'hidden',
+  },
+  progressFill: { height: 3, borderRadius: radius.pill, backgroundColor: colors.accent },
+  progressText: { fontFamily: font.semibold, color: colors.textFaint, fontSize: 12 },
 
-  // 뒤에 깔리는 두 장. 앞 카드보다 살짝 작게, 아래로 삐져나오게 둔다.
+  stack: { flex: 1, paddingBottom: 12 },
   ghostBack: {
     position: 'absolute',
     left: 22,
     right: 22,
-    top: 16,
+    top: 14,
     bottom: 0,
     borderRadius: radius.xl,
-    backgroundColor: colors.surfaceHigh,
+    backgroundColor: colors.surface,
+    opacity: 0.5,
   },
   ghostFront: {
     position: 'absolute',
     left: 11,
     right: 11,
-    top: 8,
-    bottom: 7,
+    top: 7,
+    bottom: 6,
     borderRadius: radius.xl,
-    backgroundColor: colors.accent,
-    opacity: 0.16,
+    backgroundColor: colors.surface,
+    opacity: 0.8,
   },
 
   card: {
     flex: 1,
     borderRadius: radius.xl,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.paperEdge,
-    elevation: 4,
-    shadowColor: '#16302B',
-    shadowOpacity: 0.16,
-    shadowRadius: 14,
+    borderColor: colors.accentLine,
+    elevation: 8,
+    shadowColor: colors.accent,
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
     shadowOffset: { width: 0, height: 6 },
   },
-  cardPress: { flex: 1, paddingHorizontal: 24, paddingTop: 22, paddingBottom: 18 },
-  cardScrollView: { flex: 1 },
+  cardPress: { flex: 1, paddingHorizontal: 22, paddingTop: 18, paddingBottom: 16 },
 
-  deckTag: { fontFamily: font.bold, color: colors.paperDim,
-    fontSize: 10,
-    letterSpacing: 2,
-  },
-
-  cardScroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: 18 },
-  question: {
-    color: colors.paperInk,
-    fontFamily: font.semibold,
-    fontSize: 26,
-    lineHeight: 39,
-    letterSpacing: -0.4,
-    textAlign: 'center',
-  },
-
-  answerBlock: { marginTop: 24, alignItems: 'center' },
-  rule: {
-    width: 46,
-    height: 1,
-    backgroundColor: colors.paperEdge,
-    marginBottom: 20,
-  },
-  answer: { fontFamily: font.regular, color: colors.textDim,
-    fontSize: 17,
-    lineHeight: 28,
-    textAlign: 'center',
-  },
-
-  cardFoot: {
+  cardHead: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  cardHint: { fontFamily: font.regular, color: colors.paperDim, fontSize: 11 },
+  deckTag: {
+    fontFamily: font.bold,
+    color: colors.accent,
+    fontSize: 11,
+    letterSpacing: 1.4,
+  },
+
+  cardScrollView: { flex: 1 },
+  cardScroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 },
+  question: { fontFamily: font.semibold, color: colors.text, letterSpacing: -0.4 },
+
+  answerBlock: { marginTop: 22, alignItems: 'center' },
+  rule: {
+    width: 40,
+    height: 1,
+    backgroundColor: colors.lineStrong,
+    marginBottom: 18,
+  },
+  answer: { fontFamily: font.regular, color: colors.textDim },
+
+  cardHint: {
+    fontFamily: font.regular,
+    color: colors.textFaint,
+    fontSize: 11,
+    textAlign: 'center',
+  },
 
   gradeRow: { flexDirection: 'row', gap: 9 },
   gradeButton: {
     flex: 1,
     alignItems: 'center',
-    gap: 3,
-    paddingVertical: 12,
+    gap: 5,
+    paddingVertical: 14,
     borderRadius: radius.md,
-    borderWidth: 1,
     backgroundColor: colors.surface,
   },
+  gradeDot: { width: 7, height: 7, borderRadius: radius.pill },
   gradeLabel: { fontFamily: font.bold, fontSize: 14 },
   gradeHint: { fontFamily: font.regular, color: colors.textFaint, fontSize: 10 },
 
@@ -425,16 +429,16 @@ const styles = StyleSheet.create({
   noticeMark: {
     width: 62,
     height: 62,
-    borderRadius: radius.xl,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.accentDim,
     marginBottom: 6,
   },
-  noticeTitle: { color: colors.text, fontFamily: font.bold, fontSize: 20, letterSpacing: -0.4 },
-  noticeBody: { fontFamily: font.regular, color: colors.textDim,
+  noticeTitle: { fontFamily: font.bold, color: colors.text, fontSize: 20, letterSpacing: -0.4 },
+  noticeBody: {
+    fontFamily: font.regular,
+    color: colors.textDim,
     fontSize: 13,
     lineHeight: 21,
     textAlign: 'center',
