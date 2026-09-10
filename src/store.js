@@ -1,5 +1,8 @@
 import { useSyncExternalStore } from 'react';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import TodayWidget from '../modules/today-widget';
 
 const DATA_KEY = 'memento/data';
 const HISTORY_KEY = 'memento/history';
@@ -65,11 +68,27 @@ function persist() {
       [DATA_KEY, JSON.stringify({ decks: state.decks, cards: state.cards })],
       [HISTORY_KEY, JSON.stringify(state.history)],
       [SETTINGS_KEY, JSON.stringify(state.settings)],
-    ]).catch(() => {});
+    ])
+      .then(() => TodayWidget?.refresh())
+      .catch(() => {});
   }, 250);
 }
 
+// 홈/잠금화면 위젯은 앱과 별개로 같은 저장소를 직접 읽고 쓴다(채점 버튼).
+// 앱이 백그라운드에 있는 동안 위젯이 카드를 채점하면, 메모리에 있는 state
+// 는 그 사실을 모른다 — 그 상태에서 앱이 뭔가 다른 걸 저장하면(persist)
+// 위젯이 방금 쓴 내용을 통째로 덮어써 버린다. 그래서 앱이 다시 앞으로
+// 올 때마다 저장소에서 한 번 더 읽어 메모리를 최신으로 맞춘다.
+let appStateSub = null;
+function watchAppState() {
+  if (appStateSub) return;
+  appStateSub = AppState.addEventListener('change', (next) => {
+    if (next === 'active' && state.loaded) init();
+  });
+}
+
 export async function init() {
+  watchAppState();
   try {
     const [[, data], [, history], [, settings]] = await AsyncStorage.multiGet([
       DATA_KEY,
