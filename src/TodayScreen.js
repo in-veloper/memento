@@ -237,7 +237,7 @@ export default function TodayScreen({ onGoDecks }) {
 
         <Animated.View
           style={[
-            styles.card,
+            styles.cardShadow,
             {
               opacity: enter,
               transform: [
@@ -251,52 +251,71 @@ export default function TodayScreen({ onGoDecks }) {
             },
           ]}
         >
-          <Pressable style={styles.cardPress} onPress={showAnswer}>
-            <View style={styles.cardHead}>
-              <Text style={styles.deckTag}>{deck?.name || '미분류'}</Text>
-              <MasteryMeter level={card.level} size="sm" />
-            </View>
+          {/* 안드로이드는 elevation 이 있는 View 를 overflow 설정과 상관없이 자기 경계에서
+              잘라버린다. 그림자 껍질과 내용을 분리해 둔다. */}
+          <View style={styles.card}>
+            <View style={styles.cardBody}>
+              <View style={styles.cardHead}>
+                <Text style={styles.deckTag}>{deck?.name || '미분류'}</Text>
+                <MasteryMeter level={card.level} size="sm" />
+              </View>
 
-            <ScrollView
-              style={styles.cardScrollView}
-              contentContainerStyle={styles.cardScroll}
-              showsVerticalScrollIndicator={false}
-            >
-              <Text style={[styles.question, typeScale(card.front)]}>{card.front}</Text>
+              <ScrollView
+                style={styles.cardScrollView}
+                contentContainerStyle={styles.cardScroll}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* flexGrow:1 과 justifyContent:'center' 를 contentContainerStyle 에 같이
+                    걸면 내용 높이를 잘못 재서 스크롤이 막힌다. 가운데 정렬은 한 겹 안쪽에서.
+                    글자는 터치를 받을 이유가 없으니 아예 통과시킨다. */}
+                <View style={styles.cardScrollInner} pointerEvents="none">
+                  <Text style={[styles.question, typeScale(card.front)]}>{card.front}</Text>
 
-              {revealed && hasBack && (
-                <Animated.View
-                  style={[
-                    styles.answerBlock,
-                    {
-                      opacity: reveal,
-                      transform: [
+                  {revealed && hasBack && (
+                    <Animated.View
+                      style={[
+                        styles.answerBlock,
                         {
-                          translateY: reveal.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [10, 0],
-                          }),
+                          opacity: reveal,
+                          transform: [
+                            {
+                              translateY: reveal.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [10, 0],
+                              }),
+                            },
+                          ],
                         },
-                      ],
-                    },
-                  ]}
-                >
-                  <View style={styles.rule} />
-                  <Text style={[styles.answer, typeScale(card.back, { answer: true })]}>
-                    {card.back}
-                  </Text>
-                </Animated.View>
-              )}
-            </ScrollView>
+                      ]}
+                    >
+                      <View style={styles.rule} />
+                      <Text style={[styles.answer, typeScale(card.back, { answer: true })]}>
+                        {card.back}
+                      </Text>
+                    </Animated.View>
+                  )}
+                </View>
+              </ScrollView>
 
-            <Text style={styles.cardHint}>
-              {revealed || !hasBack
-                ? card.reps > 0
-                  ? `${card.reps}번째 복습`
-                  : '첫 복습'
-                : '탭하면 답이 나옵니다'}
-            </Text>
-          </Pressable>
+              <Pressable
+                onPress={showAnswer}
+                disabled={revealed || !hasBack}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  styles.cardHintTap,
+                  pressed && !revealed && hasBack && styles.pressed,
+                ]}
+              >
+                <Text style={styles.cardHint}>
+                  {revealed || !hasBack
+                    ? card.reps > 0
+                      ? `${card.reps}번째 복습`
+                      : '첫 복습'
+                    : '탭하면 답이 나옵니다'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
         </Animated.View>
       </View>
 
@@ -366,19 +385,30 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 
-  card: {
+  // 그림자 전용 껍질. elevation 이 있으면 안드로이드가 이 View 경계에서 자식을 잘라버린다.
+  cardShadow: {
     flex: 1,
     borderRadius: radius.xl,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.accentLine,
     elevation: 8,
     shadowColor: colors.accent,
     shadowOpacity: 0.22,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 6 },
   },
-  cardPress: { flex: 1, paddingHorizontal: 22, paddingTop: 18, paddingBottom: 16 },
+  card: {
+    flex: 1,
+    borderRadius: radius.xl,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.accentLine,
+    overflow: 'hidden',
+  },
+  cardBody: { flex: 1, paddingHorizontal: 22, paddingTop: 18, paddingBottom: 16 },
+
+  cardScrollView: { flex: 1 },
+  cardScroll: { flexGrow: 1, paddingVertical: 20 },
+  cardScrollInner: { flex: 1, justifyContent: 'center' },
 
   cardHead: {
     flexDirection: 'row',
@@ -392,8 +422,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
   },
 
-  cardScrollView: { flex: 1 },
-  cardScroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: 20 },
   question: { fontFamily: font.semibold, color: colors.text, letterSpacing: -0.4 },
 
   answerBlock: { marginTop: 22, alignItems: 'center' },
@@ -405,6 +433,8 @@ const styles = StyleSheet.create({
   },
   answer: { fontFamily: font.regular, color: colors.textDim },
 
+  cardHintTap: { paddingVertical: 4 },
+  pressed: { opacity: 0.5 },
   cardHint: {
     fontFamily: font.regular,
     color: colors.textFaint,

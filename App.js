@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
-  Keyboard,
   Platform,
   Pressable,
   SafeAreaView,
@@ -42,7 +41,9 @@ export default function App() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Pressable style={styles.screen} onPress={Keyboard.dismiss} accessible={false}>
+        {/* 예전엔 화면 전체를 Pressable 로 감싸 키보드를 닫았는데, 그게 안쪽 스크롤
+            제스처까지 먼저 가로채서 손가락 스크롤이 아예 안 먹었다. 순수 View 로 둔다. */}
+        <View style={styles.screen}>
           <View style={styles.header}>
             <Text style={styles.brand}>MEMENTO</Text>
 
@@ -84,7 +85,7 @@ export default function App() {
             {tab === 'decks' && <DecksScreen />}
             {tab === 'stats' && <StatsScreen />}
           </View>
-        </Pressable>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
