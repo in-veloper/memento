@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  RemoteViews 라 쓸 수 있는 뷰가 한정된다(TextView/LinearLayout 등). 앱 화면처럼
+  카드를 누르면 뒤집는 제스처는 위젯에서 안 쓴다 — 사용자가 실제로 쓰는 카드는
+  전부 앞면만 있는 카드라(TodayScreen.js 의 hasBack 분기 참고), 위젯은 앞면을
+  보여주고 바로 다시/애매/완벽 세 버튼으로 채점하게만 한다.
+
+  카드 너비를 고정값(300dp)으로 두고, 그 카드를 바깥 캔버스 한가운데 띄우는
+  2단 구조다 — LockStar 처럼 위젯에 실제로 주는 캔버스 크기가 기본보다 커지면
+  (사용자가 손으로 키우면) 카드는 그대로 있고 남는 공간이 상하좌우로 똑같이
+  나뉜다. 이전엔 세로만 이렇게 했었는데(gravity="center_vertical"), 가로도
+  같은 이유로 필요해서 카드 자체를 고정폭으로 바꿨다.
+
+  색은 밝은 톤으로 — 흰색 바탕에 금빛 테두리, 버튼은 파스텔 채움.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+
+  <LinearLayout
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:background="@drawable/today_widget_bg"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp">
+
+    <RelativeLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+      <ImageView
+        android:id="@+id/widget_dot"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:src="@drawable/today_widget_dot" />
+
+      <TextView
+        android:id="@+id/widget_meta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/widget_dot"
+        android:layout_marginStart="8dp"
+        android:text="오늘의 카드"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.08"
+        android:textColor="#A69B87"
+        android:singleLine="true" />
+
+      <TextView
+        android:id="@+id/widget_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/today_widget_badge"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#B8860B"
+        android:visibility="gone" />
+    </RelativeLayout>
+
+    <!-- 오늘 볼 카드가 있을 때: 앞면 + 채점 버튼 -->
+    <LinearLayout
+      android:id="@+id/widget_content"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="14dp"
+      android:orientation="vertical">
+
+      <!-- RemoteViews 는 ScrollView 를 지원하지 않는다 — 대신 항목이 하나뿐인
+           ListView 를 쓴다. ListView 는 원래도 스스로 스크롤하는 컴포넌트라,
+           항목이 창보다 크면(글이 길면) 알아서 스크롤이 생긴다. 높이를 고정해
+           둬야 그 안에서만 스크롤되고 위젯 전체가 늘어나지 않는다. 실제 내용은
+           TodayFrontRemoteViewsService 가 채운다. -->
+      <ListView
+        android:id="@+id/widget_front"
+        android:layout_width="match_parent"
+        android:layout_height="108dp"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:scrollbars="none" />
+
+      <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:orientation="horizontal">
+
+        <TextView
+          android:id="@+id/btn_again"
+          android:layout_width="0dp"
+          android:layout_height="44dp"
+          android:layout_weight="1"
+          android:layout_marginEnd="9dp"
+          android:background="@drawable/today_widget_btn_again"
+          android:gravity="center"
+          android:paddingLeft="4dp"
+          android:paddingRight="4dp"
+          android:text="다시"
+          android:textSize="13sp"
+          android:textStyle="bold"
+          android:textColor="#D9503C" />
+
+        <TextView
+          android:id="@+id/btn_hard"
+          android:layout_width="0dp"
+          android:layout_height="44dp"
+          android:layout_weight="1"
+          android:layout_marginStart="5dp"
+          android:layout_marginEnd="5dp"
+          android:background="@drawable/today_widget_btn_hard"
+          android:gravity="center"
+          android:paddingLeft="4dp"
+          android:paddingRight="4dp"
+          android:text="애매"
+          android:textSize="13sp"
+          android:textStyle="bold"
+          android:textColor="#3D63D9" />
+
+        <TextView
+          android:id="@+id/btn_good"
+          android:layout_width="0dp"
+          android:layout_height="44dp"
+          android:layout_weight="1"
+          android:layout_marginStart="9dp"
+          android:background="@drawable/today_widget_btn_good"
+          android:gravity="center"
+          android:paddingLeft="4dp"
+          android:paddingRight="4dp"
+          android:text="완벽"
+          android:textSize="13sp"
+          android:textStyle="bold"
+          android:textColor="#1F9A57" />
+      </LinearLayout>
+    </LinearLayout>
+
+    <!-- 오늘 볼 카드가 없거나, 앱을 아직 한 번도 안 열었을 때 -->
+    <TextView
+      android:id="@+id/widget_empty"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="14dp"
+      android:paddingTop="4dp"
+      android:paddingBottom="4dp"
+      android:gravity="center"
+      android:textSize="14sp"
+      android:textColor="#9AA0A8"
+      android:visibility="gone" />
+  </LinearLayout>
+</FrameLayout>

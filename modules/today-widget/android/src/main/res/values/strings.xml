@@ -1,0 +1,4 @@
+<resources>
+  <string name="today_widget_label">오늘의 카드</string>
+  <string name="today_widget_description">홈·잠금화면에서 바로 카드를 채점합니다.</string>
+</resources>

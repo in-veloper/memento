@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ListView 의 유일한 행. maxLines/ellipsize 를 안 둔다 — 다 보여주고,
+     칸보다 길면 ListView 자체가 스크롤한다. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/front_text"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:paddingLeft="4dp"
+  android:paddingRight="4dp"
+  android:paddingTop="4dp"
+  android:paddingBottom="4dp"
+  android:gravity="center"
+  android:textSize="16sp"
+  android:textColor="#22262E"
+  android:lineSpacingExtra="3dp" />

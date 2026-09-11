@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 헤더 라벨 앞에 붙는 작은 금빛 점. 플랫한 텍스트만 있을 때보다 훨씬
+     "만들어진" 느낌이 난다. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+  android:shape="oval">
+  <solid android:color="#F0B849" />
+  <size android:width="6dp" android:height="6dp" />
+</shape>
