@@ -2,7 +2,7 @@
   "expo": {
     "name": "메멘토",
     "slug": "memento",
-    "version": "1.6.0",
+    "version": "1.6.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -11,12 +11,12 @@
     },
     "android": {
       "package": "com.memento.app",
-      "versionCode": 30,
+      "versionCode": 31,
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png",
-        "backgroundColor": "#252941"
+        "backgroundColor": "#FBF9F5"
       },
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW",
