@@ -24,7 +24,8 @@ import {
   updateCard,
   useStore,
 } from './store';
-import { colors, font, radius } from './theme';
+import { font, radius } from './theme';
+import { useColors } from './themeStore';
 import {
   Bar,
   Chip,
@@ -38,6 +39,8 @@ import {
 } from './ui';
 
 export default function DecksScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const state = useStore();
   const [openId, setOpenId] = useState(null);
 
@@ -396,7 +399,8 @@ export default function DecksScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   root: { flex: 1, gap: 12 },
   grow: { flex: 1 },
   pressed: { opacity: 0.85 },
@@ -499,4 +503,5 @@ const styles = StyleSheet.create({
   },
   exampleText: { fontFamily: font.regular, color: colors.textFaint, fontSize: 12 },
   bulkInput: { minHeight: 150, marginTop: 12 },
-});
+  });
+}

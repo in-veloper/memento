@@ -24,11 +24,12 @@ private const val HISTORY_KEY = "memento/history"
 private const val SETTINGS_KEY = "memento/settings"
 
 private const val MINUTE = 60_000L
-private const val DAY = 24 * 60 * MINUTE
 private const val MAX_LEVEL = 5
 
-// store.js 의 INTERVALS 와 정확히 같은 순서·값.
-private val INTERVALS = longArrayOf(10 * MINUTE, 1 * DAY, 3 * DAY, 7 * DAY, 16 * DAY, 35 * DAY)
+// store.js 의 DEFAULT_SETTINGS 와 정확히 같은 기본값.
+private const val DEFAULT_AGAIN_MINUTES = 10
+private const val DEFAULT_HARD_MINUTES = 1 * 24 * 60
+private const val DEFAULT_GOOD_MINUTES = 3 * 24 * 60
 
 data class DueCard(val id: String, val front: String)
 
@@ -124,6 +125,12 @@ class MementoStore(private val context: Context) {
       }
       val card = target ?: return false
 
+      val settingsRaw = readRaw(db, SETTINGS_KEY)
+      val settingsJson = settingsRaw?.let { JSONObject(it) }
+      val againMinutes = settingsJson?.optInt("againMinutes", DEFAULT_AGAIN_MINUTES) ?: DEFAULT_AGAIN_MINUTES
+      val hardMinutes = settingsJson?.optInt("hardMinutes", DEFAULT_HARD_MINUTES) ?: DEFAULT_HARD_MINUTES
+      val goodMinutes = settingsJson?.optInt("goodMinutes", DEFAULT_GOOD_MINUTES) ?: DEFAULT_GOOD_MINUTES
+
       val now = System.currentTimeMillis()
       val level = card.optInt("level", 0)
       val reps = card.optInt("reps", 0)
@@ -136,17 +143,17 @@ class MementoStore(private val context: Context) {
       when (gradeKey) {
         "again" -> {
           newLevel = maxOf(0, level - 1)
-          due = now + 10 * MINUTE
+          due = now + againMinutes * MINUTE
           newLapses = lapses + 1
         }
         "hard" -> {
           newLevel = level
-          due = now + maxOf(10 * MINUTE, (INTERVALS[level] * 0.5).toLong())
+          due = now + hardMinutes * MINUTE
           newLapses = lapses
         }
         else -> { // "good"
           newLevel = minOf(MAX_LEVEL, level + 1)
-          due = now + INTERVALS[newLevel]
+          due = now + goodMinutes * MINUTE
           newLapses = lapses
         }
       }

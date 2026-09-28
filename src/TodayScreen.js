@@ -12,7 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { dueCards, gradeCard, nextDueLabel, schedule, useStore } from './store';
-import { colors, font, radius } from './theme';
+import { font, radius } from './theme';
+import { useColors } from './themeStore';
 import { Chip, EmptyState, MasteryMeter, PrimaryButton } from './ui';
 
 // 글이 길수록 글자를 줄여 한 화면에 최대한 담는다.
@@ -45,13 +46,17 @@ function typeScale(text, { answer = false } = {}) {
   };
 }
 
-const GRADES = [
-  { key: 'again', label: '다시', color: colors.again },
-  { key: 'hard', label: '애매', color: colors.hard },
-  { key: 'good', label: '완벽', color: colors.good },
-];
-
 export default function TodayScreen({ onGoDecks }) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const GRADES = useMemo(
+    () => [
+      { key: 'again', label: '다시', color: colors.again },
+      { key: 'hard', label: '애매', color: colors.hard },
+      { key: 'good', label: '완벽', color: colors.good },
+    ],
+    [colors]
+  );
   const state = useStore();
   const [deckId, setDeckId] = useState(null);
   const [session, setSession] = useState([]);
@@ -346,7 +351,8 @@ export default function TodayScreen({ onGoDecks }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   root: { flex: 1, gap: 12 },
 
   topRow: { flexDirection: 'row', alignItems: 'center' },
@@ -476,4 +482,5 @@ const styles = StyleSheet.create({
   noticeButton: { marginTop: 18, alignSelf: 'stretch' },
   linkButton: { marginTop: 14, paddingVertical: 10 },
   linkText: { fontFamily: font.bold, color: colors.accent, fontSize: 14 },
-});
+  });
+}

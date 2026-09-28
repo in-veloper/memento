@@ -13,13 +13,14 @@ const DAY = 24 * 60 * MINUTE;
 
 export const MAX_LEVEL = 5;
 
-// 간격 반복(Leitner) — 잘 외운 카드는 간격을 늘리고, 틀린 카드는 곧바로 다시 돌린다.
-// 레벨이 곧 "얼마나 외웠는지"이자 다음에 다시 볼 때까지의 간격이다.
-const INTERVALS = [10 * MINUTE, 1 * DAY, 3 * DAY, 7 * DAY, 16 * DAY, 35 * DAY];
-
+// 레벨(0~MAX_LEVEL)은 "얼마나 외웠는지" 표시(암기도 점, 통계)에만 쓰고,
+// 다음 복습 시점은 레벨과 상관없이 사용자가 설정한 고정 간격을 그대로 쓴다.
 export const DEFAULT_SETTINGS = {
   dailyLimit: 60,
   frontFirst: true,
+  againMinutes: 10,
+  hardMinutes: 1 * 24 * 60,
+  goodMinutes: 3 * 24 * 60,
 };
 
 const initial = {
@@ -216,12 +217,12 @@ export function resetCard(id) {
 
 export function schedule(card, grade) {
   const now = Date.now();
+  const settings = state.settings;
 
   if (grade === 'again') {
-    const level = Math.max(0, card.level - 1);
     return {
-      level,
-      due: now + 10 * MINUTE,
+      level: Math.max(0, card.level - 1),
+      due: now + settings.againMinutes * MINUTE,
       reps: card.reps + 1,
       lapses: card.lapses + 1,
       lastReviewedAt: now,
@@ -231,17 +232,16 @@ export function schedule(card, grade) {
   if (grade === 'hard') {
     return {
       level: card.level,
-      due: now + Math.max(10 * MINUTE, INTERVALS[card.level] * 0.5),
+      due: now + settings.hardMinutes * MINUTE,
       reps: card.reps + 1,
       lapses: card.lapses,
       lastReviewedAt: now,
     };
   }
 
-  const level = Math.min(MAX_LEVEL, card.level + 1);
   return {
-    level,
-    due: now + INTERVALS[level],
+    level: Math.min(MAX_LEVEL, card.level + 1),
+    due: now + settings.goodMinutes * MINUTE,
     reps: card.reps + 1,
     lapses: card.lapses,
     lastReviewedAt: now,

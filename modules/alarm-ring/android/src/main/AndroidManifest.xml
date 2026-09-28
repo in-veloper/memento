@@ -1,0 +1,37 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!--
+    위젯과 같은 이유로 여기(라이브러리 모듈)에 둔다 — 앱 매니페스트는
+    prebuild 가 app.json 으로 다시 만들어서 직접 넣으면 다음 prebuild 때 사라진다.
+
+    SCHEDULE_EXACT_ALARM: 정확한 시각에 울려야 하는 알람 앱에게 허용되는
+    권한(안드로이드 12+). POST_NOTIFICATIONS: 풀스크린 알림을 띄우려면 필요.
+    USE_FULL_SCREEN_INTENT: 잠금화면 위로 강제로 화면을 띄우는 데 필요 —
+    이게 없으면 그냥 조용한 알림 하나로만 남는다.
+    RECEIVE_BOOT_COMPLETED: 재부팅하면 안드로이드가 예약해 둔 알람을 전부
+    지워버리기 때문에, 부팅 직후 다시 걸어줘야 한다.
+  -->
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+  <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.VIBRATE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+  <application>
+    <receiver
+      android:name="expo.modules.alarmring.AlarmReceiver"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+      </intent-filter>
+    </receiver>
+
+    <service
+      android:name="expo.modules.alarmring.AlarmRingService"
+      android:exported="false"
+      android:foregroundServiceType="mediaPlayback" />
+  </application>
+</manifest>

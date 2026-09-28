@@ -2,7 +2,8 @@
   "expo": {
     "name": "메멘토",
     "slug": "memento",
-    "version": "1.6.1",
+    "version": "1.8.2",
+    "scheme": "memento",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -11,7 +12,7 @@
     },
     "android": {
       "package": "com.memento.app",
-      "versionCode": 31,
+      "versionCode": 40,
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",

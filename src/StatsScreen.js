@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import {
   dateKey,
@@ -8,14 +7,18 @@ import {
   lastDays,
   overallStats,
   streakOf,
+  updateSettings,
   useStore,
 } from './store';
-import { colors, font, radius } from './theme';
-import { Bar, EmptyState, Label, Panel } from './ui';
+import { font, radius } from './theme';
+import { useColors } from './themeStore';
+import { Bar, DurationInput, EmptyState, Label, Panel } from './ui';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 export default function StatsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const state = useStore();
 
   const overall = useMemo(() => overallStats(state), [state]);
@@ -124,18 +127,36 @@ export default function StatsScreen() {
         </View>
       </Panel>
 
-      <View style={styles.tip}>
-        <Ionicons name="bulb-outline" size={16} color={colors.accent} />
-        <Text style={styles.tipText}>
-          틀린 카드는 10분 뒤 다시, 맞힌 카드는 1일 → 3일 → 7일 → 16일 → 35일로 간격이
-          늘어납니다. 잊어버릴 즈음에 다시 보는 게 가장 오래 남습니다.
+      <Panel>
+        <Label>복습 간격 설정</Label>
+        <Text style={styles.intervalHint}>
+          다시·애매·완벽을 눌렀을 때 그 카드가 몇 분/시간/일 뒤에 다시 나올지 직접 정합니다.
         </Text>
-      </View>
+        <View style={styles.intervalList}>
+          <DurationInput
+            label="다시"
+            minutes={state.settings.againMinutes}
+            onChange={(m) => updateSettings({ againMinutes: m })}
+          />
+          <DurationInput
+            label="애매"
+            minutes={state.settings.hardMinutes}
+            onChange={(m) => updateSettings({ hardMinutes: m })}
+          />
+          <DurationInput
+            label="완벽"
+            minutes={state.settings.goodMinutes}
+            onChange={(m) => updateSettings({ goodMinutes: m })}
+          />
+        </View>
+      </Panel>
     </ScrollView>
   );
 }
 
 function Summary({ value, unit, caption, tint }) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.summary}>
       <View style={styles.summaryValueRow}>
@@ -147,7 +168,8 @@ function Summary({ value, unit, caption, tint }) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors) {
+  return StyleSheet.create({
   list: { gap: 12, paddingBottom: 8 },
 
   hero: { gap: 12 },
@@ -203,18 +225,13 @@ const styles = StyleSheet.create({
   deckPercent: { fontFamily: font.bold, color: colors.accent, fontSize: 13 },
   deckMeta: { fontFamily: font.regular, color: colors.textFaint, fontSize: 11 },
 
-  tip: {
-    flexDirection: 'row',
-    gap: 11,
-    alignItems: 'flex-start',
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-  },
-  tipText: {
-    flex: 1,
+  intervalHint: {
     fontFamily: font.regular,
     color: colors.textFaint,
     fontSize: 12,
-    lineHeight: 19,
+    lineHeight: 18,
+    marginTop: 6,
   },
-});
+  intervalList: { marginTop: 6 },
+  });
+}
