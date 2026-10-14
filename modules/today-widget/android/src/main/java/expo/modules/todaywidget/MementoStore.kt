@@ -95,7 +95,7 @@ class MementoStore(private val context: Context) {
         val c = cards.getJSONObject(i)
         if (c.optLong("due", 0L) <= now) due.add(c)
       }
-      due.sortWith(compareBy({ it.optInt("level", 0) }, { it.optLong("due", 0L) }))
+      due.shuffle()
 
       val top = due.firstOrNull()?.let { DueCard(it.getString("id"), it.optString("front", "")) }
       val count = minOf(due.size, dailyLimit)

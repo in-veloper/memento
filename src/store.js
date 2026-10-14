@@ -278,18 +278,20 @@ export function updateSettings(patch) {
 
 /* ---------- 조회 ---------- */
 
-// 오늘 볼 카드: 기한이 된 것부터, 덜 외운 것(레벨 낮은 것) 우선.
+// 오늘 볼 카드: 기한이 된 것 중에서 등록 순서와 무관하게 무작위로.
 export function dueCards(snapshot, deckId = null) {
   const now = Date.now();
 
-  return snapshot.cards
+  const due = snapshot.cards
     .filter((c) => (deckId ? c.deckId === deckId : true))
-    .filter((c) => c.due <= now)
-    .sort((a, b) => {
-      if (a.level !== b.level) return a.level - b.level;
-      return a.due - b.due;
-    })
-    .slice(0, snapshot.settings.dailyLimit);
+    .filter((c) => c.due <= now);
+
+  for (let i = due.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [due[i], due[j]] = [due[j], due[i]];
+  }
+
+  return due.slice(0, snapshot.settings.dailyLimit);
 }
 
 export function deckStats(snapshot, deckId) {
