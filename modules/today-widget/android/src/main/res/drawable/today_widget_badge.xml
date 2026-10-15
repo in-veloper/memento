@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 금색 14% 채움(accentDim). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-  <solid android:color="#FBF1DC" />
+  <solid android:color="#24F0B849" />
   <corners android:radius="10dp" />
 </shape>
